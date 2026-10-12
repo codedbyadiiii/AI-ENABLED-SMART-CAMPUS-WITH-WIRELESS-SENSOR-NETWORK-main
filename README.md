@@ -14,6 +14,7 @@ The system is designed to collect classroom telemetry from an ESP32-based sensor
 - Predicts energy usage for the next interval using XGBoost
 - Detects unusual energy consumption using residual analysis and appliance attribution
 - Exposes interactive API documentation through FastAPI and Swagger UI
+- Includes a live-style classroom energy dashboard for viewing readings, predictions, and anomalies
 
 ## Architecture
 
@@ -44,6 +45,7 @@ The sensor layer can publish readings from CT clamps or PZEM-004T energy meters,
 - **Machine learning:** XGBoost, scikit-learn, NumPy, pandas
 - **Hardware integration:** ESP32 with HTTP or MQTT publishing
 - **API documentation:** OpenAPI and Swagger UI
+- **Dashboard:** HTML, CSS, JavaScript, and Chart.js
 
 ## Repository Structure
 
@@ -67,6 +69,8 @@ The sensor layer can publish readings from CT clamps or PZEM-004T energy meters,
 │   ├── predict.py              # Model inference
 │   ├── anomaly.py              # Anomaly detection and attribution
 │   └── models/                 # Trained model artifacts
+├── Live-dashoard-main/
+│   └── Classroom Energy Monitor — MIT ADT University (1).html
 ├── .gitignore
 └── README.md
 ```
@@ -118,6 +122,18 @@ Open the following URLs after the server starts:
 
 - Swagger UI: <http://localhost:8000/docs>
 - ReDoc: <http://localhost:8000/redoc>
+
+## Live Dashboard
+
+The standalone classroom energy dashboard is available in [`Live-dashoard-main/`](Live-dashoard-main/).
+It provides a visual view of:
+
+- Current energy consumption, lighting usage, and temperature
+- Actual versus predicted energy usage
+- Hourly and daily consumption trends
+- Residual-based anomaly status and model metrics
+
+Open [`Classroom Energy Monitor — MIT ADT University (1).html`](<Live-dashoard-main/Classroom Energy Monitor — MIT ADT University (1).html>) in a modern web browser to view it. The dashboard currently uses embedded UCI sample data and loads Chart.js from a CDN, so it does not require the FastAPI server to run. API integration can be added later to replace the embedded data with live classroom readings.
 
 ## API Endpoints
 
