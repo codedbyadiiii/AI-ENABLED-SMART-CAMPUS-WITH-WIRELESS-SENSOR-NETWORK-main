@@ -1,131 +1,137 @@
-# Intelligent Classroom Energy Monitoring System
-**Final Year B.Tech Project — MIT School of Computing, MITADT University**
+# AI-Enabled Smart Campus
 
----
+An intelligent classroom energy monitoring system that combines wireless sensor data, a FastAPI backend, SQLite persistence, machine-learning predictions, and anomaly detection.
 
-## Phase 18 — Final End-to-End Architecture
+## Overview
 
-```
-REAL CLASSROOM
-│
-├── Energy Sensors (CT clamps / PZEM-004T on each circuit)
-│     light_circuit → light_power_w
-│     fan_circuit   → fan_power_w
-│     projector     → projector_power_w
-│
-├── Context Sensors
-│     DHT22         → temperature, humidity
-│     PIR / manual  → occupancy
-│     BH1750        → light_intensity
-│
-↓
-ESP32 Microcontroller  [TEAMMATES' RESPONSIBILITY]
-│   Reads sensors every 10 minutes
-│   Computes total_power_w and energy_kwh
-│   Publishes via Wi-Fi → MQTT broker OR HTTP POST
-│
-↓
-FastAPI Backend  [MY RESPONSIBILITY]
-│   POST /api/sensor-data   → ingests & validates payload
-│   GET  /api/current       → latest reading
-│   GET  /api/history       → aggregated history
-│   GET  /api/prediction    → on-demand prediction
-│   GET  /api/anomalies     → anomaly log
-│
-↓
-SQLite Database (→ PostgreSQL in production)  [MY RESPONSIBILITY]
-│   sensor_readings   table
-│   predictions       table
-│   anomalies         table
-│
-↓
-ML Pipeline  [MY RESPONSIBILITY]
-│   preprocessing.py  → feature engineering
-│   predict.py        → XGBoost inference (v1.0)
-│   anomaly.py        → residual + appliance attribution
-│
-├── Energy Forecast
-│     XGBoost → predicted_next_interval_wh
-│     LSTM    → available, better R² (0.58 vs 0.35)
-│
-└── Anomaly Detection
-      Residual method (3σ threshold from validation set)
-      Isolation Forest (secondary, 2% contamination)
-      Appliance attribution → pending real ESP32 data
-│
-↓
-Dashboard / Classroom Display  [SHARED / INTEGRATION]
-    Current panel    → live W readings per appliance
-    Historical panel → hourly/daily kWh charts
-    AI panel         → predictions + anomaly alerts
+The system is designed to collect classroom telemetry from an ESP32-based sensor network and provide actionable energy insights through a REST API.
+
+### Key capabilities
+
+- Ingests temperature, humidity, occupancy, lighting, and appliance energy readings
+- Validates and stores sensor readings in SQLite
+- Provides current and historical energy data
+- Predicts energy usage for the next interval using XGBoost
+- Detects unusual energy consumption using residual analysis and appliance attribution
+- Exposes interactive API documentation through FastAPI and Swagger UI
+
+## Architecture
+
+```text
+Energy and context sensors
+        |
+        v
+ESP32 sensor node
+        |
+        | HTTP or MQTT integration
+        v
+FastAPI REST API
+        |
+        +--> SQLite database
+        |
+        +--> ML inference and anomaly detection
+        |
+        v
+Dashboard or classroom display
 ```
 
----
+The sensor layer can publish readings from CT clamps or PZEM-004T energy meters, DHT22 temperature and humidity sensors, PIR occupancy sensors, and BH1750 light sensors.
 
-## Responsibility Map
+## Technology Stack
 
-| Component | Owner |
-|---|---|
-| CT clamp / PZEM sensors, wiring | Teammates |
-| ESP32 firmware, MQTT/HTTP publish | Teammates |
-| FastAPI backend (`/backend/`) | **You** |
-| Database schema + queries | **You** |
-| ML pipeline (`/ml/`) | **You** |
-| Anomaly detection logic | **You** |
-| Dashboard frontend | Shared / TBD |
-| WiFi network / broker setup | Shared |
+- **Backend:** Python, FastAPI, Pydantic, Uvicorn
+- **Database:** SQLite
+- **Machine learning:** XGBoost, scikit-learn, NumPy, pandas
+- **Hardware integration:** ESP32 with HTTP or MQTT publishing
+- **API documentation:** OpenAPI and Swagger UI
 
----
+## Repository Structure
 
-## Project Structure
-
-```
-project/
+```text
+.
 ├── backend/
-│   ├── main.py              ← FastAPI app entry point
+│   ├── main.py                 # FastAPI application entry point
 │   ├── api/
-│   │   ├── sensor.py        ← POST /api/sensor-data
-│   │   ├── energy.py        ← GET  /api/current, /api/history
-│   │   ├── prediction.py    ← GET  /api/prediction
-│   │   └── anomaly.py       ← GET  /api/anomalies
-│   ├── schemas/
-│   │   └── schemas.py       ← Pydantic request/response models
-│   └── database/
-│       └── db.py            ← SQLite connection + init_db()
-│
-├── ml/
-│   ├── preprocessing.py     ← Feature engineering (shared)
-│   ├── predict.py           ← Inference only (loads saved model)
-│   ├── anomaly.py           ← Appliance-level attribution
-│   └── models/
-│       ├── xgboost_tuned.json
-│       ├── anomaly_thresholds.npy
-│       └── lstm_model.keras
-│
+│   │   ├── sensor.py           # Sensor data ingestion
+│   │   ├── energy.py           # Current and historical energy data
+│   │   ├── prediction.py       # Energy prediction endpoint
+│   │   └── anomaly.py          # Anomaly endpoint
+│   ├── database/
+│   │   └── db.py               # SQLite connection and initialization
+│   └── schemas/
+│       └── schemas.py          # Request and response models
 ├── data/
-│   ├── schema.sql           ← Database schema
-│   └── classroom_energy.db  ← SQLite DB (auto-created)
-│
-├── notebooks/               ← EDA + training notebooks
+│   └── schema.sql              # Database schema
+├── ml/
+│   ├── preprocessing.py        # Feature engineering
+│   ├── predict.py              # Model inference
+│   ├── anomaly.py              # Anomaly detection and attribution
+│   └── models/                 # Trained model artifacts
+├── .gitignore
 └── README.md
 ```
 
----
+## Getting Started
 
-## How to Run
+### Prerequisites
+
+- Python 3.9 or later
+- `pip`
+
+### Installation
+
+1. Clone the repository and enter the project directory:
+
+   ```bash
+   git clone https://github.com/codedbyadiiii/AI-ENABLED-SMART-CAMPUS-WITH-WIRELESS-SENSOR-NETWORK-main.git
+   cd AI-ENABLED-SMART-CAMPUS-WITH-WIRELESS-SENSOR-NETWORK-main
+   ```
+
+2. Create and activate a virtual environment:
+
+   ```bash
+   python3 -m venv .venv
+   source .venv/bin/activate
+   ```
+
+   On Windows, use:
+
+   ```powershell
+   .venv\Scripts\activate
+   ```
+
+3. Install the dependencies:
+
+   ```bash
+   pip install fastapi uvicorn xgboost scikit-learn pandas numpy pydantic
+   ```
+
+### Run the API
+
+From the repository root:
 
 ```bash
-# 1. Install dependencies
-pip install fastapi uvicorn xgboost scikit-learn pandas numpy pydantic
+uvicorn backend.main:app --reload --host 0.0.0.0 --port 8000
+```
 
-# 2. Start the server
-cd backend
-uvicorn main:app --reload --host 0.0.0.0 --port 8000
+Open the following URLs after the server starts:
 
-# 3. API docs (auto-generated)
-# Open: http://localhost:8000/docs
+- Swagger UI: <http://localhost:8000/docs>
+- ReDoc: <http://localhost:8000/redoc>
 
-# 4. Test with simulated ESP32 data
+## API Endpoints
+
+| Endpoint | Method | Description |
+| --- | --- | --- |
+| `/api/sensor-data` | `POST` | Ingest a sensor reading and return a prediction |
+| `/api/current` | `GET` | Return the latest sensor reading |
+| `/api/history` | `GET` | Return raw, hourly, or daily historical data |
+| `/api/prediction` | `GET` | Generate a prediction from the latest available data |
+| `/api/anomalies` | `GET` | List detected energy anomalies |
+
+### Example sensor request
+
+```bash
 curl -X POST http://localhost:8000/api/sensor-data \
   -H "Content-Type: application/json" \
   -d '{
@@ -141,54 +147,45 @@ curl -X POST http://localhost:8000/api/sensor-data \
   }'
 ```
 
----
+## Machine Learning
 
-## Model Performance (UCI Public Dataset — Not Classroom Data)
+The current inference pipeline uses a tuned XGBoost model selected for its balance of prediction accuracy and API response time. The anomaly detector combines residual thresholds with appliance-level attribution.
 
-| Model | MAE (Wh) | RMSE (Wh) | R² | Train Time |
-|---|---|---|---|---|
-| Naive Baseline | 34.65 | 88.88 | 0.055 | <0.01s |
-| Linear Regression | 33.30 | 74.10 | 0.343 | 0.02s |
-| Random Forest | 45.65 | 81.08 | 0.214 | 19.1s |
-| XGBoost (tuned) | 34.14 | 73.67 | 0.351 | 0.2s |
-| **LSTM** | **23.73** | **59.39** | **0.575** | 123.7s |
+The included model evaluation results are based on a public UCI household energy dataset:
 
-**Selected model for inference: XGBoost (tuned)**
-- Best balance of accuracy and inference speed for real-time API
-- LSTM available as an upgrade when latency permits
+| Model | MAE (Wh) | RMSE (Wh) | R2 |
+| --- | ---: | ---: | ---: |
+| Naive baseline | 34.65 | 88.88 | 0.055 |
+| Linear regression | 33.30 | 74.10 | 0.343 |
+| Random forest | 45.65 | 81.08 | 0.214 |
+| XGBoost | 34.14 | 73.67 | 0.351 |
+| LSTM | 23.73 | 59.39 | 0.575 |
 
----
+The LSTM result is included for comparison; XGBoost is the selected production inference model in this repository.
 
-## Limitations
+## Hardware Integration
 
-1. **Dataset mismatch**: Trained on Belgian household data (2016). Classroom patterns will differ significantly — occupancy-driven peaks, class schedules, etc.
-2. **No occupancy feature**: UCI dataset has no occupancy data; this is the single most important missing feature for a classroom system.
-3. **Appliance attribution**: Cannot validate fan/projector anomaly logic without real per-circuit ESP32 data.
-4. **Cold start**: Lag features need ≥ 1008 readings (7 days) of history before reaching full accuracy. Rolling means are filled with available history in the interim.
-5. **Model drift**: As seasons change, the model should be retrained periodically on accumulated ESP32 data.
+An ESP32 node can collect readings at a configurable interval and publish them to the backend over Wi-Fi. A typical deployment may include:
 
----
+- CT clamps or PZEM-004T meters for appliance-level power measurement
+- DHT22 for temperature and humidity
+- PIR or manual input for occupancy
+- BH1750 for ambient light intensity
 
-## Future Integration with ESP32
+MQTT or a direct HTTP integration can be added at the sensor gateway layer without changing the core ML pipeline.
 
-When the hardware team delivers sensor data:
+## Limitations and Future Work
 
-1. Run `POST /api/sensor-data` for every 10-minute reading.
-2. After 7 days of real data, retrain the XGBoost model using the same `train.py` pipeline.
-3. Replace `ml/models/xgboost_tuned.json` with the new model (`v2.0`).
-4. Anomaly thresholds will automatically recalibrate on the new validation residuals.
-5. Add `occupancy` as a feature — it will likely be the single largest improvement.
+- The model was trained on Belgian household energy data rather than classroom data.
+- Occupancy is collected by the API but is not represented in the current trained model.
+- Appliance attribution requires real per-circuit sensor data for validation.
+- The model should be retrained periodically using accumulated classroom readings.
+- PostgreSQL, authentication, monitoring, and a production dashboard are recommended for deployment at scale.
 
----
+## Project Context
 
-## API Reference
+This project was developed as a final-year B.Tech project at MIT School of Computing, MITADT University. The backend, database, machine-learning pipeline, and anomaly detection components are organized to support future ESP32 and dashboard integration.
 
-| Endpoint | Method | Description |
-|---|---|---|
-| `/api/sensor-data` | POST | Ingest ESP32 reading, return prediction |
-| `/api/current` | GET | Latest sensor reading |
-| `/api/history` | GET | Aggregated history (raw/hourly/daily) |
-| `/api/prediction` | GET | On-demand prediction from latest data |
-| `/api/anomalies` | GET | List of detected anomaly events |
+## License
 
-Full interactive docs at `http://localhost:8000/docs` (Swagger UI).
+No license has been specified yet. Add a license before accepting external contributions or redistributing the project.
